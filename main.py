@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO)
 
 osmenu = ReplyKeyboardMarkup(keyboard=[
     [KeyboardButton(text='Проверить финансовую организацию'), KeyboardButton(text='Warning list Банка России')],
-    [KeyboardButton(text='Интернет-приёмная'), KeyboardButton(text='Контактная информация'), KeyboardButton(text='Проект финансовая культура')]
+    [KeyboardButton(text='Интернет-приёмная'), KeyboardButton(text='Контактная информация'), KeyboardButton(text='Возврат в меню выбора')]
 ])
 
 
@@ -61,7 +61,7 @@ tran2 = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Контактная информация', url='https://cbr.ru/contacts/')]
 ])
 tran3 = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='Проект финансовая культура', url='https://fincult.info/')]
+    [InlineKeyboardButton(text='Возврат к меню выбора', callback_data='selection_menu')]
 ])
 
 
@@ -103,8 +103,8 @@ async def internet_processing(message: types.Message):
     if message.text == 'Контактная информация':
         await message.answer('Для перехода на контактную информацию:',
                              reply_markup=tran2)
-    if message.text == 'Проект финансовая культура':
-        await message.answer('Для перехода на проект финансовой культуры:',
+    if message.text == 'Возврат в меню выбора':
+        await message.answer('Для перехода в меню:',
                              reply_markup=tran3)
     else:
         pass
