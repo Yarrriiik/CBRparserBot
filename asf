@@ -1,0 +1,25 @@
+import httpx
+from bs4 import BeautifulSoup
+
+def parse_cbr_creditals(name: str = '', OGRN: str = '', REGN: str = ''):
+    base_url = 'https://www.cbr.ru/banking_sector/credit/colistfo/'
+    response = httpx.get(base_url, params={
+        'SearchPrase': name,
+        'SearchOGRN': OGRN,
+        'SearchREGN': REGN,
+    })
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.text, 'html.parser')
+        for i in soup.find_all('div', class_="col-md-23 offset-md-1"):
+            try:
+                nn = i.find('p').text
+                if nn == 'Нет организаций, удовлетворяющих поисковым ограничениям.':
+                    return 0
+                else:
+                    for j in i.find('tbody').find('tr').find_all('td'):
+                        print(j.text)
+            except:
+                ...
+    else:
+        print(response.status_code)
+print(parse_cbr_creditals(name='Авангард'))
