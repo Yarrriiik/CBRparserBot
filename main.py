@@ -2,7 +2,7 @@ import logging
 import aiogram
 import openpyxl
 import json
-
+from kbluid import *
 from openpyxl import load_workbook
 from aiogram import types, Bot, Dispatcher, executor
 from aiogram.dispatcher.filters import Text
@@ -20,59 +20,6 @@ class processing_class(StatesGroup):
     check = State()
     rs = State()
     result = State()
-
-
-osmenu = ReplyKeyboardMarkup(keyboard=[
-    [KeyboardButton(text='Справочник финансовых организаций'), KeyboardButton(text='Warning list Банка России')],
-    [KeyboardButton(text='Интернет-приёмная'), KeyboardButton(text='Контактная информация'), KeyboardButton(text='Возврат в меню выбора')]
-])
-menu1 = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='Выбрать', callback_data='quick_earnings')]
-])
-menu2 = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='Выбрать', callback_data='lending_loans')]
-])
-menu8 = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='Выбрать', callback_data='broker')]
-])
-menu3 = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='В меню выбора', callback_data='selection_menu')]
-])
-menu4 = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='Справочник финансовых организаций', url='https://www.cbr.ru/fmp_check/')]
-])
-menu5 = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='Наименование', callback_data='name_menu')],
-    [InlineKeyboardButton(text='ИНН', callback_data='inn_menufix')],
-    [InlineKeyboardButton(text='Номер', callback_data='number_menu')],
-    [InlineKeyboardButton(text='Предположительно, организации нет в реестрах:', callback_data='no_reestr')]
-])
-menu6 = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='Проверка на нелегальную деятельность', callback_data='neleg_deyat')]
-])
-menu7 = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='Наименование', callback_data='name_menu2')],
-    [InlineKeyboardButton(text='ИНН', callback_data='inn_menu')],
-    [InlineKeyboardButton(text='Сайт', callback_data='site_menu')],
-    [InlineKeyboardButton(text='Адрес', callback_data='adres_menu')]
-])
-menu9 = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='Справочник финансовых организаций', url='https://www.cbr.ru/fmp_check/')],
-    [InlineKeyboardButton(text='Warning list Банка России', callback_data='neleg_deyat')],
-    [InlineKeyboardButton(text='В меню выбора', callback_data='selection_menu')]
-])
-# menudel1 = InlineKeyboardMarkup(inline_keyboard=[
-#     [InlineKeyboardButton(text='Убрать', callback_data='delmenu')]
-# ])
-tran1 = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='Интернет-приёмная', url='https://www.cbr.ru/reception/')]
-])
-tran2 = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='Контактная информация', url='https://www.cbr.ru/contacts/')]
-])
-tran3 = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='Возврат к меню выбора', callback_data='selection_menu')]
-])
 
 
 @dp.message_handler(commands= 'start', state='*')
@@ -252,47 +199,6 @@ async def next_menu_processing(call: types.CallbackQuery, state: FSMContext):
     await bot.send_message(chat_id=call.from_user.id,
                            text='Для начала работы проверьте наличие компании в справочнике финансовых организаций',
                            reply_markup=menu4)
-
-
-# @dp.callback_query_handler(Text(equals='delmenu'))
-# async def selection_menu_processing(call: types.CallbackQuery):
-#     await call.answer()
-#     await call.message.delete()
-
-
-# @dp.callback_query_handler(Text(equals='directory_of_organizations'))
-# async def directory_of_organizations(call: types.CallbackQuery):
-#     await call.answer()
-#     await bot.send_message(chat_id=call.from_user.id,
-#                      text='В справочнике финансовых организаций можно узнать информации по: названию, ИНН, регистраионному номеру. Через что осуществить поиск?',
-#                      reply_markup=menu5)
-
-
-# @dp.callback_query_handler(Text(equals='name_menu'))
-# async def name_menu_processing(call: types.CallbackQuery):
-#     await call.answer()
-#     await bot.send_message(chat_id=call.from_user.id,
-#                            text='Укажите наименование организации')
-#
-# @dp.callback_query_handler(Text(equals='inn_menufix'))
-# async def ogrn_menu_processing(call: types.CallbackQuery):
-#     await call.answer()
-#     await bot.send_message(chat_id=call.from_user.id,
-#                            text='Укажите ИНН организации')
-#
-# @dp.callback_query_handler(Text(equals='number_menu'))
-# async def number_menu_processing(call: types.CallbackQuery):
-#     await call.answer()
-#     await bot.send_message(chat_id=call.from_user.id,
-#                            text='Укажите номер организации')
-
-
-# @dp.callback_query_handler(Text(equals='no_reestr'))
-# async def no_reestr_processing(call: types.CallbackQuery):
-#     await call.answer()
-#     await bot.send_message(chat_id=call.from_user.id,
-#                            text='Компания не найдена в реестрах Банка России, проверьте наличие компании в списке компаний с выявленными нелегальной деятельности на финансовом рынке.',
-#                            reply_markup=menu6)
 
 
 @dp.callback_query_handler(text='neleg_deyat', state='*')
