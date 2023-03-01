@@ -1,21 +1,31 @@
 import logging
 import aiogram
+import openpyxl
+import json
 
+from openpyxl import load_workbook
 from aiogram import types, Bot, Dispatcher, executor
 from aiogram.dispatcher.filters import Text
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, KeyboardButton, ReplyKeyboardMarkup, message
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, KeyboardButton, ReplyKeyboardMarkup, message, \
+    ContentTypes
+from aiogram.dispatcher.filters.state import StatesGroup, State
+from aiogram.contrib.fsm_storage.memory import MemoryStorage
+from aiogram.dispatcher import FSMContext
 
 bot = Bot(token="5595250602:AAHGvDIF1cwozhvk5PymIR3I1ayx99GfxtU")
-dp = Dispatcher(bot)
+dp = Dispatcher(bot, storage=MemoryStorage())
 logging.basicConfig(level=logging.INFO)
 
+class processing_class(StatesGroup):
+    check = State()
+    rs = State()
+    result = State()
+
+
 osmenu = ReplyKeyboardMarkup(keyboard=[
-    [KeyboardButton(text='Проверить финансовую организацию'), KeyboardButton(text='Warning list Банка России')],
+    [KeyboardButton(text='Справочник финансовых организаций'), KeyboardButton(text='Warning list Банка России')],
     [KeyboardButton(text='Интернет-приёмная'), KeyboardButton(text='Контактная информация'), KeyboardButton(text='Возврат в меню выбора')]
 ])
-
-
-
 menu1 = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Выбрать', callback_data='quick_earnings')]
 ])
@@ -29,10 +39,10 @@ menu3 = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='В меню выбора', callback_data='selection_menu')]
 ])
 menu4 = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='Справочник финансовых организаций', callback_data='directory_of_organizations')]
+    [InlineKeyboardButton(text='Справочник финансовых организаций', url='https://www.cbr.ru/fmp_check/')]
 ])
 menu5 = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='Название', callback_data='name_menu')],
+    [InlineKeyboardButton(text='Наименование', callback_data='name_menu')],
     [InlineKeyboardButton(text='ИНН', callback_data='inn_menufix')],
     [InlineKeyboardButton(text='Номер', callback_data='number_menu')],
     [InlineKeyboardButton(text='Предположительно, организации нет в реестрах:', callback_data='no_reestr')]
@@ -47,18 +57,18 @@ menu7 = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Адрес', callback_data='adres_menu')]
 ])
 menu9 = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='Справочник финансовых организаций', callback_data='directory_of_organizations')],
+    [InlineKeyboardButton(text='Справочник финансовых организаций', url='https://www.cbr.ru/fmp_check/')],
     [InlineKeyboardButton(text='Warning list Банка России', callback_data='neleg_deyat')],
     [InlineKeyboardButton(text='В меню выбора', callback_data='selection_menu')]
 ])
-menudel1 = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='Убрать', callback_data='delmenu')]
-])
+# menudel1 = InlineKeyboardMarkup(inline_keyboard=[
+#     [InlineKeyboardButton(text='Убрать', callback_data='delmenu')]
+# ])
 tran1 = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='Интернет-приёмная', url='https://cbr.ru/reception/')]
+    [InlineKeyboardButton(text='Интернет-приёмная', url='https://www.cbr.ru/reception/')]
 ])
 tran2 = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='Контактная информация', url='https://cbr.ru/contacts/')]
+    [InlineKeyboardButton(text='Контактная информация', url='https://www.cbr.ru/contacts/')]
 ])
 tran3 = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Возврат к меню выбора', callback_data='selection_menu')]
@@ -66,8 +76,46 @@ tran3 = InlineKeyboardMarkup(inline_keyboard=[
 
 
 @dp.message_handler(commands= 'start', state='*')
-async def start_commands(message: types.Message):
-    to_pin = await bot.send_message(message.chat.id, 'Текст для закрепа')
+async def start_commands(message: types.Message, state: FSMContext):
+    to_pin = await bot.send_message(message.chat.id, 'Ознакомьтесь более подробно с возможностями бота.\n\n'
+                                                     'Справочник финансовых организаций - все организации, которые предоставляют'
+                                                     ' финансовые услуги, — банки, небанковские кредитные организации, негосударственные'
+                                                     ' пенсионные фонды, страховые организации, управляющие компании, профессиональные'
+                                                     ' участники рынка ценных бумаг, операторы финансовых платформ и другие операторы'
+                                                     ' финансовых услуг, микрофинансовые организации, кооперативы, ломбарды, бюро'
+                                                     ' кредитных историй,  актуарии и другие — должны получить разрешение Банка'
+                                                     ' России о допуске на финансовый рынок. В зависимости от вида организации'
+                                                     ' это может быть как лицензия, так и включение сведений в реестр или аккредитация.'
+                                                     ' Для того чтобы проверить легальность работы на рынке (имеющиеся лицензии,'
+                                                     ' виды деятельности), выберите в меню “Справочник финансовых организаций”.'
+                                                     ' В полученном результате найдите интересующую вас компанию и имеющуюся по'
+                                                     ' ней информацию. Если в справочнике по введенным реквизитам участника'
+                                                     ' финансового рынка вы не нашли нужной информации, то высока вероятность,'
+                                                     ' что компания ведет свою деятельность без соответствующего разрешения.'
+                                                     ' Как следствие, это может повлечь за собой нарушение ваших прав. В'
+                                                     ' таком случае советуем проверить компанию в “Списке компаний с'
+                                                     ' выявленными признаками нелегальной деятельности на финансовом рынке”.'
+                                                     ' Для этого выберите в меню “Warning list Банка России”.\n\n'
+                                                     '<a href="https://www.youtube.com/watch?v=NYYfvN61mCM&t=5s&ab_channel=%D0%91%D0%B0%D0%BD%D0%BA%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D0%B8">Наглядное пособие</a>'
+                                                     ' как пользоваться сервисом “Справочник финансовых организаций”.\n\n'
+                                                     'Список компаний с выявленными признаками нелегальной деятельности'
+                                                     ' на финансовом рынке (Warning list Банка России) - Банк России с'
+                                                     ' помощью специальной системы мониторинга, а также по обращениям'
+                                                     ' граждан и организаций выявляет (в том числе в Интернете) компании'
+                                                     ' и проекты с признаками нелегальной деятельности. Чтобы снизить'
+                                                     ' риски вовлечения граждан и организаций в незаконную деятельность,'
+                                                     ' Банк России раскрывает список компаний с признаками «финансовой'
+                                                     ' пирамиды», нелегального кредитора, нелегального профессионального'
+                                                     ' участника рынка ценных бумаг (в том числе нелегального форекс-дилера).'
+                                                     ' Список не содержит сведений о физических лицах и индивидуальных'
+                                                     ' предпринимателях. Для проверки наличия компании в Warning list'
+                                                     ' Банка России выберите в меню “Warning list Банка России”.\n\n'
+                                                     'Интернет-приемная Банка России - вы можете обратиться в Банк России любым удобным для Вас способом:\n'
+                                                     '    - Позвонить в контактный центр\n'
+                                                     '    - Отправить обращение в электронном виде\n'
+                                                     '    - Прийти на личный прием\n'
+                                                     'Для получения подробной информации нажмите в меню “Интернет-приемная”.',   #Закреп
+                                    parse_mode=types.ParseMode.HTML)
     await bot.pin_chat_message(chat_id=message.chat.id, message_id=to_pin['message_id'])
     await bot.send_message(chat_id=message.from_user.id,
                            text='Что вас интересует?',
@@ -86,31 +134,35 @@ async def start_commands(message: types.Message):
                            reply_markup=menu8)
 
 
+@dp.callback_query_handler(Text(equals='selection_menu'), state='*')
+async def selection_menu_processing(call: types.CallbackQuery, state: FSMContext):
+    await call.answer()
+    await call.message.delete()
+    current_state = await state.get_state()
+    if current_state == None:
+        return
+    await bot.send_message(chat_id=call.from_user.id,
+                           text='Что вас интересует?',
+                           reply_markup=osmenu)
+    await bot.send_message(chat_id=call.from_user.id,
+                           text='Быстрый заработок, инвестиционные проекты, пассивный доход:',
+                           parse_mode='HTML',
+                           reply_markup=menu1)
+    await bot.send_message(chat_id=call.from_user.id,
+                           text='Кредитование, выдача займов, займы под залог ПТС / недвижимости:',
+                           parse_mode='HTML',
+                           reply_markup=menu2)
+    await bot.send_message(chat_id=call.from_user.id,
+                           text='Брокер, форекс-дилер, доверительное управление (профессиональные участники рынка ценных бумаг):',
+                           parse_mode='HTML',
+                           reply_markup=menu8)
+    await state.finish()
 
-@dp.message_handler(content_types='text')
-async def internet_processing(message: types.Message):
-    if message.text == 'Проверить финансовую организацию':
-        await message.delete()
-        await message.answer('Проверить финансовую организацию',
-                             reply_markup=menu4)
-    if message.text == 'Warning list Банка России':
-        await message.delete()
-        await message.answer('Warning list Банка России',
-                             reply_markup=menu6)
-    if message.text == 'Интернет-приёмная':
-        await message.answer('Для перехода на интернет-приёмную:',
-                             reply_markup=tran1)
-    if message.text == 'Контактная информация':
-        await message.answer('Для перехода на контактную информацию:',
-                             reply_markup=tran2)
-    if message.text == 'Возврат в меню выбора':
-        await message.answer('Для перехода в меню:',
-                             reply_markup=tran3)
-    else:
-        pass
 
-@dp.callback_query_handler(Text(equals='quick_earnings'))
-async def quick_earnings_processing(call: types.CallbackQuery):
+
+
+@dp.callback_query_handler(text='quick_earnings', state='*')
+async def quick_earnings_processing(call: types.CallbackQuery, state: FSMContext):
     await call.answer()
     await bot.send_message(chat_id=call.from_user.id,
                            text='Если вам поступило предложение инвестировать денежные средства в какую-либо компанию или проект,'
@@ -136,13 +188,13 @@ async def quick_earnings_processing(call: types.CallbackQuery):
                                 'Подробно с деятельностью финансовых пирамид также можно ознакомиться <a href="https://fincult.info/article/finansovaya-piramida-kak-ee-raspoznat/">здесь</a>.',
                            parse_mode=types.ParseMode.HTML)
     await bot.send_message(chat_id=call.from_user.id,
-                           text='Чтобы узнать находится ли компания в реестре Банка России (имеет ли лицензию), воспользуйтесь кнопкой "Проверить финансовую организацию".'
+                           text='Чтобы узнать находится ли компания в реестре Банка России (имеет ли лицензию), воспользуйтесь кнопкой "Справочник финансовых организаций".'
                                 ' Также проверьте сведения о компании в Списке компаний с выявленными признаками нелегальной деятельности". Для этого выберите в меню "Warning list Банка России".',
                            reply_markup=menu9)
 
 
-@dp.callback_query_handler(Text(equals='lending_loans'))
-async def lending_loans_processing(call: types.CallbackQuery):
+@dp.callback_query_handler(text='lending_loans', state='*')
+async def lending_loans_processing(call: types.CallbackQuery, state: FSMContext):
     await call.answer()
     await bot.send_message(chat_id=call.from_user.id,
                            text='Быть профессиональным кредитором, то есть выдавать кредиты и займы в денежной форме, могут'
@@ -154,16 +206,16 @@ async def lending_loans_processing(call: types.CallbackQuery):
                                 'Обратите внимание на сделки, совершаемые под видом финансовой аренды (лизинга). Обычно это связано'
                                 ' с кредитованием под залог ПТС автомобиля. Зачастую указанные сделки могут быть притворными,'
                                 ' т.е. сделками, которые совершаются с целью прикрыть другую сделку, в том числе сделку на иных условиях.\n\n'
-                                'Подробно с деятельностью финансовых пирамид также можно ознакомиться <a href="https://fincult.info/article/kak-ne-stat-zhertvoy-chernykh-kreditorov/">здесь</a>.',
+                                'Подробно с деятельностью нелегальных кредиторов также можно ознакомиться <a href="https://fincult.info/article/kak-ne-stat-zhertvoy-chernykh-kreditorov/">здесь</a>.',
                            parse_mode=types.ParseMode.HTML)
     await bot.send_message(chat_id=call.from_user.id,
-                           text='Чтобы узнать находится ли компания в реестре Банка России (имеет ли лицензию), воспользуйтесь кнопкой "Проверить финансовую организацию".'
+                           text='Чтобы узнать находится ли компания в реестре Банка России (имеет ли лицензию), воспользуйтесь кнопкой "Справочник финансовых организаций".'
                                 ' Также проверьте сведения о компании в Списке компаний с выявленными признаками нелегальной деятельности". Для этого выберите в меню "Warning list Банка России".',
                            reply_markup=menu9)
 
 
-@dp.callback_query_handler(Text(equals='broker'))
-async def lending_loans_processing(call: types.CallbackQuery):
+@dp.callback_query_handler(text='broker', state='*')
+async def lending_loans_processing(call: types.CallbackQuery, state: FSMContext):
     await call.answer()
     await bot.send_message(chat_id=call.from_user.id,
                            text='Брокеры, форекс-дилеры, доверительные управляющие (или те, кто ими прикидывается) часто ссылаются'
@@ -189,129 +241,164 @@ async def lending_loans_processing(call: types.CallbackQuery):
                                 '<a href="https://fincult.info/article/chto-takoe-foreks-forex-kak-rabotaet-torgovlya-na-etom-rynke/">Гайд</a>: как начать пользоваться услугами легального форекс-дилера.',
                            parse_mode=types.ParseMode.HTML)
     await bot.send_message(chat_id=call.from_user.id,
-                           text='Чтобы узнать находится ли компания в реестре Банка России (имеет ли лицензию), воспользуйтесь кнопкой "Проверить финансовую организацию".'
+                           text='Чтобы узнать находится ли компания в реестре Банка России (имеет ли лицензию), воспользуйтесь кнопкой "Справочник финансовых организаций".'
                                 ' Также проверьте сведения о компании в Списке компаний с выявленными признаками нелегальной деятельности". Для этого выберите в меню "Warning list Банка России".',
                            reply_markup=menu9)
 
 
-@dp.callback_query_handler(Text(equals='next_menu'))
-async def next_menu_processing(call: types.CallbackQuery):
+@dp.callback_query_handler(text='next_menu', state='*')
+async def next_menu_processing(call: types.CallbackQuery, state: FSMContext):
     await call.answer()
     await bot.send_message(chat_id=call.from_user.id,
                            text='Для начала работы проверьте наличие компании в справочнике финансовых организаций',
                            reply_markup=menu4)
 
 
-@dp.callback_query_handler(Text(equals='selection_menu'))
-async def selection_menu_processing(call: types.CallbackQuery):
+# @dp.callback_query_handler(Text(equals='delmenu'))
+# async def selection_menu_processing(call: types.CallbackQuery):
+#     await call.answer()
+#     await call.message.delete()
+
+
+# @dp.callback_query_handler(Text(equals='directory_of_organizations'))
+# async def directory_of_organizations(call: types.CallbackQuery):
+#     await call.answer()
+#     await bot.send_message(chat_id=call.from_user.id,
+#                      text='В справочнике финансовых организаций можно узнать информации по: названию, ИНН, регистраионному номеру. Через что осуществить поиск?',
+#                      reply_markup=menu5)
+
+
+# @dp.callback_query_handler(Text(equals='name_menu'))
+# async def name_menu_processing(call: types.CallbackQuery):
+#     await call.answer()
+#     await bot.send_message(chat_id=call.from_user.id,
+#                            text='Укажите наименование организации')
+#
+# @dp.callback_query_handler(Text(equals='inn_menufix'))
+# async def ogrn_menu_processing(call: types.CallbackQuery):
+#     await call.answer()
+#     await bot.send_message(chat_id=call.from_user.id,
+#                            text='Укажите ИНН организации')
+#
+# @dp.callback_query_handler(Text(equals='number_menu'))
+# async def number_menu_processing(call: types.CallbackQuery):
+#     await call.answer()
+#     await bot.send_message(chat_id=call.from_user.id,
+#                            text='Укажите номер организации')
+
+
+# @dp.callback_query_handler(Text(equals='no_reestr'))
+# async def no_reestr_processing(call: types.CallbackQuery):
+#     await call.answer()
+#     await bot.send_message(chat_id=call.from_user.id,
+#                            text='Компания не найдена в реестрах Банка России, проверьте наличие компании в списке компаний с выявленными нелегальной деятельности на финансовом рынке.',
+#                            reply_markup=menu6)
+
+
+@dp.callback_query_handler(text='neleg_deyat', state='*')
+async def neleg_deyat_processing(call: types.CallbackQuery, state: FSMContext):
     await call.answer()
-    await call.message.delete()
+    await state.set_state(processing_class.check.state)
     await bot.send_message(chat_id=call.from_user.id,
-                           text='Что вас интересует?',
-                           reply_markup=osmenu)
-    await bot.send_message(chat_id=call.from_user.id,
-                           text='Быстрый заработок, инвестиционные проекты, пассивный доход:',
-                           parse_mode='HTML',
-                           reply_markup=menu1)
-    await bot.send_message(chat_id=call.from_user.id,
-                           text='Кредитование, выдача займов, займы под залог ПТС / недвижимости:',
-                           parse_mode='HTML',
-                           reply_markup=menu2)
-    await bot.send_message(chat_id=call.from_user.id,
-                           text='Брокер, форекс-дилер, доверительное управление (профессиональные участники рынка ценных бумаг):',
-                           parse_mode='HTML',
-                           reply_markup=menu8)
-
-
-@dp.callback_query_handler(Text(equals='delmenu'))
-async def selection_menu_processing(call: types.CallbackQuery):
-    await call.answer()
-    await call.message.delete()
-
-
-@dp.callback_query_handler(Text(equals='directory_of_organizations'))
-async def directory_of_organizations(call: types.CallbackQuery):
-    await call.answer()
-    await bot.send_message(chat_id=call.from_user.id,
-                     text='В справочнике финансовых организаций можно узнать информации по: названию, ИНН, регистраионному номеру. Через что осуществить поиск?',
-                     reply_markup=menu5)
-
-
-@dp.callback_query_handler(Text(equals='name_menu'))
-async def name_menu_processing(call: types.CallbackQuery):
-    await call.answer()
-    await bot.send_message(chat_id=call.from_user.id,
-                           text='Укажите название организации\n\n'
-                           'здесь вы укажите название, и вам выведут, есть ли организация или нет\n\n'
-                                'В доработке')
-
-@dp.callback_query_handler(Text(equals='inn_menufix'))
-async def ogrn_menu_processing(call: types.CallbackQuery):
-    await call.answer()
-    await bot.send_message(chat_id=call.from_user.id,
-                           text='Укажите ИНН организации\n\n'
-                                'здесь вы укажите ИНН, и вам выведут, есть ли организация или нет\n\n'
-                                'В доработке')
-
-@dp.callback_query_handler(Text(equals='number_menu'))
-async def number_menu_processing(call: types.CallbackQuery):
-    await call.answer()
-    await bot.send_message(chat_id=call.from_user.id,
-                           text='Укажите номер организации\n\n'
-                                'здесь вы укажите номер, и вам выведут, есть ли организация или нет)\n\n'
-                                'В доработке')
-
-
-@dp.callback_query_handler(Text(equals='no_reestr'))
-async def no_reestr_processing(call: types.CallbackQuery):
-    await call.answer()
-    await bot.send_message(chat_id=call.from_user.id,
-                           text='Компания не найдена в реестрах Банка России, проверьте наличие компании в списке компаний с выявленными нелегальной деятельности на финансовом рынке.',
-                           reply_markup=menu6)
-
-
-@dp.callback_query_handler(Text(equals='neleg_deyat'))
-async def neleg_deyat_processing(call: types.CallbackQuery):
-    await call.answer()
-    await bot.send_message(chat_id=call.from_user.id,
-                           text='В справочнике нелегальной деятельности организаций можно узнать информации по: названию, ИНН, адресу сайта. Через что осуществить поиск?',
+                           text='В справочнике нелегальной деятельности организаций можно узнать информации по: наименованию, ИНН, сайту, адресу сайта. Через что осуществить поиск?',
                            reply_markup=menu7)
 
 
-@dp.callback_query_handler(Text(equals='name_menu2'))
-async def name_menu2_processing(call: types.CallbackQuery):
-    await call.answer()
+@dp.callback_query_handler(text='name_menu2', state=processing_class.check.state)
+async def name_menu2_processing(call: types.CallbackQuery, state: FSMContext):
     await bot.send_message(chat_id=call.from_user.id,
-                           text='Укажите название организации\n\n'
-                                'здесь вы укажите название, и вам выведут, есть ли организация или нет)\n\n'
-                                'В доработке')
-
-
-@dp.callback_query_handler(Text(equals='inn_menu'))
-async def name_menu2_processing(call: types.CallbackQuery):
+                           text='Укажите наименование организации')
+    await state.set_state(processing_class.rs.state)
     await call.answer()
-    await bot.send_message(chat_id=call.from_user.id,
-                           text='Укажите инн организации\n\n'
-                                'здесь вы укажите ИНН, и вам выведут, есть ли организация или нет)\n\n'
-                                'В доработке')
 
 
-@dp.callback_query_handler(Text(equals='site_menu'))
-async def name_menu2_processing(call: types.CallbackQuery):
+@dp.callback_query_handler(text='inn_menu', state=processing_class.check.state)
+async def name_menu2_processing(call: types.CallbackQuery, state: FSMContext):
     await call.answer()
+    await state.set_state(processing_class.rs.state)
     await bot.send_message(chat_id=call.from_user.id,
-                           text='Укажите сайт организации\n\n'
-                                'здесь вы укажите сайт, и вам выведут, есть ли организация или нет)\n\n'
-                                'В доработке')
+                           text='Укажите инн организации')
 
 
-@dp.callback_query_handler(Text(equals='adres_menu'))
-async def name_menu2_processing(call: types.CallbackQuery):
+@dp.callback_query_handler(text='site_menu', state=processing_class.check.state)
+async def name_menu2_processing(call: types.CallbackQuery, state: FSMContext):
     await call.answer()
+    await state.set_state(processing_class.rs.state)
     await bot.send_message(chat_id=call.from_user.id,
-                           text='Укажите адрес организации\n\n'
-                                'здесь вы укажите адрес, и вам выведут, есть ли организация или нет)\n\n'
-                                'В доработке')
+                           text='Укажите сайт организации')
+
+
+@dp.callback_query_handler(text='adres_menu', state=processing_class.check.state)
+async def name_menu2_processing(call: types.CallbackQuery, state: FSMContext):
+    await call.answer()
+    await state.set_state(processing_class.rs.state)
+    await bot.send_message(chat_id=call.from_user.id,
+                           text='Укажите адрес организации')
+
+# @dp.message_handler(lambda message: not message.text, state=processing_class.check.state)
+# async def check_text_processing(message: types.Message, state: FSMContext):
+#     return await message.answer('Это не подходящее значение, измените его')
+
+
+@dp.message_handler(state=processing_class.rs.state)
+async def check_org_processing(message: types.Message, state: FSMContext):
+    if len(message.text) > 3:
+        with open('result.json', 'rt', encoding='utf-8') as file:
+            data_dict = json.loads(file.read())
+        dict2 = {}
+        for key in data_dict.keys():
+            dict2[key.lower()] = key
+        sett = set(dict2.keys())
+        flaglist = []
+        for i in sett:
+            if message.text.lower() in i:
+                flaglist.append(dict2[i])
+        flaglist.sort()
+        keyb = types.InlineKeyboardMarkup()
+        for i in flaglist:
+            keyb.add(types.InlineKeyboardButton(text=i, callback_data=f'sold-{flaglist.index(i)}'))
+        await message.answer('res', reply_markup=keyb)
+        await state.update_data(flags=flaglist)
+        await state.update_data(dict2=data_dict)
+        await state.set_state(processing_class.result.state)
+    else:
+        await message.answer(text='Маленькая длина, попробуй ещё раз.')
+        return
+
+@dp.callback_query_handler(Text(startswith='sold'), state=processing_class.result.state)
+async def process_buttons(call: types.CallbackQuery, state: FSMContext):
+    await call.answer()
+    ind = int(call.data.split('-')[1])
+    data = (await state.get_data())
+    data_list = list(map(str,data['dict2'][data['flags'][ind]]))
+    totalstr = ''
+    for i, elem in enumerate(data_list):
+        if elem or elem is not None or elem == 'None':
+            totalstr += f'{data["dict2"]["Название"][i]}: <b>{elem}</b>\n'
+    await bot.send_message(chat_id=call.from_user.id, text=totalstr, parse_mode='HTML')
+
+
+
+@dp.message_handler(content_types='text', state='*')
+async def internet_processing(message: types.Message, state: FSMContext):
+    if message.text == 'Справочник финансовых организаций':
+        await message.answer('Справочник финансовых организаций',
+                             reply_markup=menu4)
+    if message.text == 'Warning list Банка России':
+        await message.answer('Warning list Банка России',
+                             reply_markup=menu6)
+    if message.text == 'Интернет-приёмная':
+        await message.answer('Для перехода на интернет-приёмную:',
+                             reply_markup=tran1)
+    if message.text == 'Контактная информация':
+        await message.answer('Для перехода на контактную информацию:',
+                             reply_markup=tran2)
+    if message.text == 'Возврат в меню выбора':
+        await message.answer('Для перехода в меню:',
+                             reply_markup=tran3)
+    else:
+        pass
+
 
 
 if __name__ == '__main__':
