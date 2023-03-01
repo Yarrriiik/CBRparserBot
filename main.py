@@ -21,6 +21,55 @@ class processing_class(StatesGroup):
     rs = State()
     result = State()
 
+@dp.callback_query_handler(Text(equals='selection_menu'), state='*')
+async def selection_menu_processing(call: types.CallbackQuery, state: FSMContext):
+    await call.answer()
+    await call.message.delete()
+    await bot.send_message(chat_id=call.from_user.id,
+                           text='Что вас интересует?',
+                           reply_markup=osmenu)
+    await bot.send_message(chat_id=call.from_user.id,
+                           text='Быстрый заработок, инвестиционные проекты, пассивный доход:',
+                           parse_mode='HTML',
+                           reply_markup=menu1)
+    await bot.send_message(chat_id=call.from_user.id,
+                           text='Кредитование, выдача займов, займы под залог ПТС / недвижимости:',
+                           parse_mode='HTML',
+                           reply_markup=menu2)
+    await bot.send_message(chat_id=call.from_user.id,
+                           text='Брокер, форекс-дилер, доверительное управление (профессиональные участники рынка ценных бумаг):',
+                           parse_mode='HTML',
+                           reply_markup=menu8)
+    await state.finish()
+@dp.message_handler(text='Возврат в меню выбора', state='*')
+async def cancel_command(message: types.Message, state: FSMContext):
+    await state.finish()
+    await message.answer(text='Для перехода в меню:',
+                        reply_markup=tran3)
+
+@dp.message_handler(text='Справочник финансовых организаций', state='*')
+async def sprav_command(message: types. Message, state: FSMContext):
+    await state.finish()
+    await message.answer(text='Справочник финансовых организаций',
+                        reply_markup=menu4)
+
+@dp.message_handler(text='Warning list Банка России', state='*')
+async def cancel_command(message: types.Message, state: FSMContext):
+    await state.finish()
+    await message.answer('Warning list Банка России',
+                         reply_markup=menu6)
+
+@dp.message_handler(text='Интернет-приёмная', state='*')
+async def cancel_command(message: types.Message, state: FSMContext):
+    await state.finish()
+    await message.answer('Для перехода на интернет-приёмную:',
+                         reply_markup=tran1)
+@dp.message_handler(text='Контактная информация', state='*')
+async def cancel_command(message: types.Message, state: FSMContext):
+    await state.finish()
+    await message.answer('Для перехода на контактную информацию:',
+                         reply_markup=tran2)
+
 
 @dp.message_handler(commands= 'start', state='*')
 async def start_commands(message: types.Message, state: FSMContext):
@@ -79,33 +128,9 @@ async def start_commands(message: types.Message, state: FSMContext):
                            text='Брокер, форекс-дилер, доверительное управление (профессиональные участники рынка ценных бумаг):',
                            parse_mode='HTML',
                            reply_markup=menu8)
-
-
-@dp.callback_query_handler(Text(equals='selection_menu'), state='*')
-async def selection_menu_processing(call: types.CallbackQuery, state: FSMContext):
-    await call.answer()
-    await call.message.delete()
-    current_state = await state.get_state()
-    if current_state == None:
-        return
-    await bot.send_message(chat_id=call.from_user.id,
-                           text='Что вас интересует?',
-                           reply_markup=osmenu)
-    await bot.send_message(chat_id=call.from_user.id,
-                           text='Быстрый заработок, инвестиционные проекты, пассивный доход:',
-                           parse_mode='HTML',
-                           reply_markup=menu1)
-    await bot.send_message(chat_id=call.from_user.id,
-                           text='Кредитование, выдача займов, займы под залог ПТС / недвижимости:',
-                           parse_mode='HTML',
-                           reply_markup=menu2)
-    await bot.send_message(chat_id=call.from_user.id,
-                           text='Брокер, форекс-дилер, доверительное управление (профессиональные участники рынка ценных бумаг):',
-                           parse_mode='HTML',
-                           reply_markup=menu8)
-    await state.finish()
-
-
+    await bot.send_message(chat_id=message.from_user.id,
+                           text='Страхование, полисы ОСАГО:',
+                           reply_markup=menu11)
 
 
 @dp.callback_query_handler(text='quick_earnings', state='*')
@@ -140,6 +165,25 @@ async def quick_earnings_processing(call: types.CallbackQuery, state: FSMContext
                            reply_markup=menu9)
 
 
+@dp.callback_query_handler(text='osago', state='*')
+async def osago_processing(call: types.CallbackQuery, state: FSMContext):
+    await call.answer()
+    await bot.send_message(chat_id=call.from_user.id,
+                           text='Быть профессиональным кредитором, то есть выдавать кредиты и займы в денежной форме, могут только банки,'
+                                ' микрофинансовые организации (МФО), кредитные потребительские кооперативы (КПК и СКПК) и ломбарды.\n\n'
+                                'Если разрешения у компании (или лицензии у банка) нет, а она все равно привлекает клиентов, выдает себя'
+                                ' за лицензированную и кредитует потребителей, то это нелегальный, или черный, кредитор. Такие нелегальные'
+                                ' кредиторы могут действовать по-разному. Например, выдавать деньги под очень высокие проценты, но при этом'
+                                ' не прибегать к откровенному криминалу. А могут использовать преступные схемы, чтобы обманом завладеть деньгами и имуществом клиентов.\n\n'
+                                'Обратите внимание на сделки, совершаемые под видом финансовой аренды (лизинга). Обычно это связано с кредитованием под залог ПТС автомобиля.'
+                                ' Зачастую указанные сделки могут быть притворными, т.е. сделками, которые совершаются с целью прикрыть другую сделку, в том числе сделку'
+                                ' на иных условиях.\n\n'
+                                'Подробно с деятельностью нелегальных кредиторов также можно ознакомиться <a href="https://fincult.info/article/kak-ne-stat-zhertvoy-chernykh-kreditorov/">здесь</a>.',
+                           parse_mode=types.ParseMode.HTML)
+    await bot.send_message(chat_id=call.from_user.id,
+                           text='Чтобы узнать находится ли компания в реестре Банка России (имеет ли лицензию), воспользуйтесь кнопкой "Справочник финансовых организаций".'
+                                ' Также проверьте сведения о компании в Списке компаний с выявленными признаками нелегальной деятельности". Для этого выберите в меню "Warning list Банка России".',
+                           reply_markup=menu9)
 @dp.callback_query_handler(text='lending_loans', state='*')
 async def lending_loans_processing(call: types.CallbackQuery, state: FSMContext):
     await call.answer()
@@ -206,40 +250,17 @@ async def neleg_deyat_processing(call: types.CallbackQuery, state: FSMContext):
     await call.answer()
     await state.set_state(processing_class.check.state)
     await bot.send_message(chat_id=call.from_user.id,
-                           text='В справочнике нелегальной деятельности организаций можно узнать информации по: наименованию, ИНН, сайту, адресу сайта. Через что осуществить поиск?',
+                           text='В справочнике нелегальной деятельности организаций можно узнать информации по: наименованию, ИНН, сайту, адресу сайта.',
                            reply_markup=menu7)
 
 
 @dp.callback_query_handler(text='name_menu2', state=processing_class.check.state)
 async def name_menu2_processing(call: types.CallbackQuery, state: FSMContext):
     await bot.send_message(chat_id=call.from_user.id,
-                           text='Укажите наименование организации')
+                           text='Введите данные')
     await state.set_state(processing_class.rs.state)
     await call.answer()
 
-
-@dp.callback_query_handler(text='inn_menu', state=processing_class.check.state)
-async def name_menu2_processing(call: types.CallbackQuery, state: FSMContext):
-    await call.answer()
-    await state.set_state(processing_class.rs.state)
-    await bot.send_message(chat_id=call.from_user.id,
-                           text='Укажите инн организации')
-
-
-@dp.callback_query_handler(text='site_menu', state=processing_class.check.state)
-async def name_menu2_processing(call: types.CallbackQuery, state: FSMContext):
-    await call.answer()
-    await state.set_state(processing_class.rs.state)
-    await bot.send_message(chat_id=call.from_user.id,
-                           text='Укажите сайт организации')
-
-
-@dp.callback_query_handler(text='adres_menu', state=processing_class.check.state)
-async def name_menu2_processing(call: types.CallbackQuery, state: FSMContext):
-    await call.answer()
-    await state.set_state(processing_class.rs.state)
-    await bot.send_message(chat_id=call.from_user.id,
-                           text='Укажите адрес организации')
 
 # @dp.message_handler(lambda message: not message.text, state=processing_class.check.state)
 # async def check_text_processing(message: types.Message, state: FSMContext):
@@ -259,14 +280,17 @@ async def check_org_processing(message: types.Message, state: FSMContext):
         for i in sett:
             if message.text.lower() in i:
                 flaglist.append(dict2[i])
-        flaglist.sort()
-        keyb = types.InlineKeyboardMarkup()
-        for i in flaglist:
-            keyb.add(types.InlineKeyboardButton(text=i, callback_data=f'sold-{flaglist.index(i)}'))
-        await message.answer('res', reply_markup=keyb)
-        await state.update_data(flags=flaglist)
-        await state.update_data(dict2=data_dict)
-        await state.set_state(processing_class.result.state)
+        if flaglist == []:
+            await message.answer('Ничего не найдено, повторите попытку', reply_markup=tran4)
+        else:
+            flaglist.sort()
+            keyb = types.InlineKeyboardMarkup()
+            for i in flaglist:
+                keyb.add(types.InlineKeyboardButton(text=i, callback_data=f'sold-{flaglist.index(i)}'))
+            await message.answer('Найденные данные по запросу:', reply_markup=keyb)
+            await state.update_data(flags=flaglist)
+            await state.update_data(dict2=data_dict)
+            await state.set_state(processing_class.result.state)
     else:
         await message.answer(text='Маленькая длина, попробуй ещё раз.')
         return
@@ -281,30 +305,7 @@ async def process_buttons(call: types.CallbackQuery, state: FSMContext):
     for i, elem in enumerate(data_list):
         if elem or elem is not None or elem == 'None':
             totalstr += f'{data["dict2"]["Название"][i]}: <b>{elem}</b>\n'
-    await bot.send_message(chat_id=call.from_user.id, text=totalstr, parse_mode='HTML')
-
-
-
-@dp.message_handler(content_types='text', state='*')
-async def internet_processing(message: types.Message, state: FSMContext):
-    if message.text == 'Справочник финансовых организаций':
-        await message.answer('Справочник финансовых организаций',
-                             reply_markup=menu4)
-    if message.text == 'Warning list Банка России':
-        await message.answer('Warning list Банка России',
-                             reply_markup=menu6)
-    if message.text == 'Интернет-приёмная':
-        await message.answer('Для перехода на интернет-приёмную:',
-                             reply_markup=tran1)
-    if message.text == 'Контактная информация':
-        await message.answer('Для перехода на контактную информацию:',
-                             reply_markup=tran2)
-    if message.text == 'Возврат в меню выбора':
-        await message.answer('Для перехода в меню:',
-                             reply_markup=tran3)
-    else:
-        pass
-
+    await bot.send_message(chat_id=call.from_user.id, text=totalstr, parse_mode='HTML', reply_markup=menu3)
 
 
 if __name__ == '__main__':
