@@ -295,7 +295,7 @@ async def neleg_deyat_processing(call: types.CallbackQuery, state: FSMContext):
                            reply_markup=menu7)
 
 
-@dp.callback_query_handler(text='name_menu2', state=processing_class.check.state)
+@dp.callback_query_handler(text='name_menu2', state='*')
 async def name_menu2_processing(call: types.CallbackQuery, state: FSMContext):
     await bot.send_message(chat_id=call.from_user.id,
                            text='Введите данные')
@@ -322,13 +322,19 @@ async def check_org_processing(message: types.Message, state: FSMContext):
             if message.text.lower() in i:
                 flaglist.append(dict2[i])
         if flaglist == []:
-            await message.answer('Ничего не найдено, повторите попытку', reply_markup=tran4)
+            await message.answer('Ничего не найдено, повторите попытку', reply_markup=menu7)
         else:
             flaglist.sort()
             keyb = types.InlineKeyboardMarkup()
+            rubbish_list = []
             for i in flaglist:
-                keyb.add(types.InlineKeyboardButton(text=data_dict[i][0], callback_data=f'sold-{flaglist.index(i)}'))
-            await message.answer(f'Найдено {len(flaglist)} компаний:', reply_markup=keyb)
+                if data_dict[i][0] not in rubbish_list:
+                    keyb.add(types.InlineKeyboardButton(text=data_dict[i][0], callback_data=f'sold-{flaglist.index(i)}'))
+                    rubbish_list.append(data_dict[i][0])
+                else:
+                    pass
+            keyb.add(types.InlineKeyboardButton(text='Поиск', callback_data='name_menu2'))
+            await message.answer(f'Найдено компаний ({len(rubbish_list)}):', reply_markup=keyb)
             await state.update_data(flags=flaglist)
             await state.update_data(dict2=data_dict)
             await state.set_state(processing_class.result.state)
@@ -343,11 +349,12 @@ async def process_buttons(call: types.CallbackQuery, state: FSMContext):
     data = (await state.get_data())
     data_list = list(map(str,data['dict2'][data['flags'][ind]]))
     totalstr = ''
+    keyb2 = types.InlineKeyboardMarkup()
+    keyb2.add(types.InlineKeyboardButton(text='Поиск заново', callback_data='name_menu2'),(types.InlineKeyboardButton(text='В меню выбора', callback_data='selection_menu')))
     for i, elem in enumerate(data_list):
         if elem != '' and elem != 'None':
-            print([elem])
             totalstr += f'{data["dict2"]["Название"][i]}: <b>{elem}</b>\n'
-    await bot.send_message(chat_id=call.from_user.id, text=totalstr, parse_mode='HTML', reply_markup=menu3)
+    await bot.send_message(chat_id=call.from_user.id, text=totalstr, parse_mode='HTML', reply_markup=keyb2)
 
 
 if __name__ == '__main__':
