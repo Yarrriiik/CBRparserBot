@@ -113,8 +113,8 @@ async def sprav_command(message: types. Message, state: FSMContext):
 @dp.message_handler(text='Warning list Банка России', state='*')
 async def cancel_command(message: types.Message, state: FSMContext):
     await state.finish()
-    await message.answer('Warning list Банка России',
-                         reply_markup=menu6)
+    await message.answer('В справочнике нелегальной деятельности организаций можно узнать информации по: "Поиск по названию, ИНН, адресу, сайту за весь доступный период".',
+                           reply_markup=menu7)
 
 @dp.message_handler(text='Интернет-приёмная', state='*')
 async def cancel_command(message: types.Message, state: FSMContext):
@@ -313,7 +313,7 @@ async def neleg_deyat_processing(call: types.CallbackQuery, state: FSMContext):
     await call.answer()
     await state.set_state(processing_class.check.state)
     await bot.send_message(chat_id=call.from_user.id,
-                           text='В справочнике нелегальной деятельности организаций можно узнать информации по: наименованию, ИНН, сайту, адресу сайта.',
+                           text='В справочнике нелегальной деятельности организаций можно узнать информации по: "Поиск по названию, ИНН, адресу, сайту за весь доступный период".',
                            reply_markup=menu7)
 
 
