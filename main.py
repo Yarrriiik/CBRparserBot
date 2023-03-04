@@ -80,7 +80,7 @@ async def selection_menu_processing(call: types.CallbackQuery, state: FSMContext
     await call.answer()
     await call.message.delete()
     await bot.send_message(chat_id=call.from_user.id,
-                           text='Что вас интересует?',
+                           text='📖Ознакомьтесь с основными видами нелегальной деятельности на финансовом рынке',
                            reply_markup=osmenu)
     await bot.send_message(chat_id=call.from_user.id,
                            text='💰Быстрый заработок, инвестиционные проекты, пассивный доход:онные проекты, пассивный доход:',
@@ -98,33 +98,33 @@ async def selection_menu_processing(call: types.CallbackQuery, state: FSMContext
                            text='📄 Страхование, полисы ОСАГО::',
                            reply_markup=menu11)
     await state.finish()
-@dp.message_handler(text='Возврат в меню выбора', state='*')
+@dp.message_handler(text='↩️Возврат в меню выбора', state='*')
 async def cancel_command(message: types.Message, state: FSMContext):
     await state.finish()
     await message.answer(text='Для перехода в меню:',
                         reply_markup=tran3)
 
-@dp.message_handler(text='Справочник финансовых организаций', state='*')
+@dp.message_handler(text='🔎Справочник финансовых организаций', state='*')
 async def sprav_command(message: types. Message, state: FSMContext):
     await state.finish()
-    await message.answer(text='Справочник финансовых организаций',
+    await message.answer(text='Проверить финансовую организацию:',
                         reply_markup=menu4)
 
-@dp.message_handler(text='Warning list Банка России', state='*')
+@dp.message_handler(text='🆘Warning list Банка России', state='*')
 async def cancel_command(message: types.Message, state: FSMContext):
     await state.finish()
     await message.answer('В справочнике нелегальной деятельности организаций можно узнать информации по: "Поиск по названию, ИНН, адресу, сайту за весь доступный период".',
                            reply_markup=menu7)
 
-@dp.message_handler(text='Интернет-приёмная', state='*')
+@dp.message_handler(text='📝Интернет-приёмная', state='*')
 async def cancel_command(message: types.Message, state: FSMContext):
     await state.finish()
-    await message.answer('Для перехода на интернет-приёмную:',
+    await message.answer('Перейти в Интернет-приёмную Банка России:',
                          reply_markup=tran1)
-@dp.message_handler(text='Контактная информация', state='*')
+@dp.message_handler(text='☎️Контактная информация', state='*')
 async def cancel_command(message: types.Message, state: FSMContext):
     await state.finish()
-    await message.answer('Для перехода на контактную информацию:',
+    await message.answer('Связаться с Банком России:',
                          reply_markup=tran2)
 
 
@@ -358,7 +358,7 @@ async def check_org_processing(message: types.Message, state: FSMContext):
                     rubbish_list.append(data_dict[i][0])
                 else:
                     pass
-            keyb.add(types.InlineKeyboardButton(text='Поиск', callback_data='name_menu2'))
+            keyb.add(types.InlineKeyboardButton(text='🔍 Поиск', callback_data='name_menu2'))
             await message.answer(f'Найдено компаний ({len(rubbish_list)}):', reply_markup=keyb)
             await state.update_data(flags=flaglist)
             await state.update_data(dict2=data_dict)
@@ -375,7 +375,7 @@ async def process_buttons(call: types.CallbackQuery, state: FSMContext):
     data_list = list(map(str,data['dict2'][data['flags'][ind]]))
     totalstr = ''
     keyb2 = types.InlineKeyboardMarkup()
-    keyb2.add(types.InlineKeyboardButton(text='Поиск заново', callback_data='name_menu2'),(types.InlineKeyboardButton(text='В меню выбора', callback_data='selection_menu')))
+    keyb2.add(types.InlineKeyboardButton(text='🔍 Поиск заново', callback_data='name_menu2'),(types.InlineKeyboardButton(text='↩️Возврат в меню выбора', callback_data='selection_menu')))
     for i, elem in enumerate(data_list):
         if elem != '' and elem != 'None':
             totalstr += f'{data["dict2"]["Название"][i]}: <b>{elem}</b>\n'

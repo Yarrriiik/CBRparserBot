@@ -32,7 +32,7 @@ menu6 = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Проверка на нелегальную деятельность', callback_data='neleg_deyat')]
 ])
 menu7 = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='Поиск', callback_data='name_menu2')]
+    [InlineKeyboardButton(text='🔍 Поиск', callback_data='name_menu2')]
 ])
 menu9 = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='🔎Справочник финансовых организаций', url='https://www.cbr.ru/fmp_check/')],
