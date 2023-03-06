@@ -35,23 +35,23 @@ def parse_xlsx_to_json(path):
     wb = load_workbook(path)
     ws = wb.worksheets[0]
     data_dict = {}
-    for i in range(1, ws.max_row):
+    for i in range(1, ws.max_row+1):
         try:
             if ws[f'B{i}'].value is not None:
-                data_dict[ws[f'B{i}'].value] = [ws[f'B{i}'].value, ws[f'C{i}'].value, ws[f'D{i}'].value,
+                data_dict[ws[f'B{i}'].value.replace('ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ', 'ООО')] = [ws[f'B{i}'].value.replace('ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ', 'ООО'), ws[f'C{i}'].value, ws[f'D{i}'].value,
                                                 ws[f'E{i}'].value, ws[f'F{i}'].value,
                                                 'Дата' if ws[f'A{i}'].value == 'Дата' else ws[f'A{i}'].value.strftime(
                                                     '%d.%m.%y')]
             if ws[f'C{i}'].value is not None:
-                data_dict[ws[f'C{i}'].value] = [ws[f'B{i}'].value, ws[f'C{i}'].value, ws[f'D{i}'].value,
+                data_dict[ws[f'C{i}'].value] = [ws[f'B{i}'].value.replace('ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ', 'ООО'), ws[f'C{i}'].value, ws[f'D{i}'].value,
                                                 ws[f'E{i}'].value, ws[f'F{i}'].value,
                                                 'Дата' if ws[f'A{i}'].value == 'Дата' else ws[f'A{i}'].value.strftime('%d.%m.%y')]
             if ws[f'D{i}'].value is not None:
-                data_dict[ws[f'D{i}'].value] = [ws[f'B{i}'].value, ws[f'C{i}'].value, ws[f'D{i}'].value,
+                data_dict[ws[f'D{i}'].value] = [ws[f'B{i}'].value.replace('ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ', 'ООО'), ws[f'C{i}'].value, ws[f'D{i}'].value,
                                                 ws[f'E{i}'].value, ws[f'F{i}'].value,
                                                 'Дата' if ws[f'A{i}'].value == 'Дата' else ws[f'A{i}'].value.strftime('%d.%m.%y')]
             if ws[f'E{i}'].value is not None:
-                data_dict[ws[f'E{i}'].value] = [ws[f'B{i}'].value, ws[f'C{i}'].value, ws[f'D{i}'].value,
+                data_dict[ws[f'E{i}'].value] = [ws[f'B{i}'].value.replace('ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ', 'ООО'), ws[f'C{i}'].value, ws[f'D{i}'].value,
                                                 ws[f'E{i}'].value, ws[f'F{i}'].value,
                                                 'Дата' if ws[f'A{i}'].value == 'Дата' else ws[f'A{i}'].value.strftime('%d.%m.%y')]
         except ValueError:
@@ -345,8 +345,17 @@ async def check_org_processing(message: types.Message, state: FSMContext):
         sett = set(dict2.keys())
         flaglist = []
         for i in sett:
-            if message.text.lower() in i.lower():
-                flaglist.append(dict2[i])
+            try:
+                if len(message.text.split(' ')) == 1:
+                    if message.text.lower() in i.lower():
+                        flaglist.append(dict2[i])
+                else:
+                    text_for_search = message.text.lower().split(' ')
+                    if all(j in i.lower() for j in text_for_search):
+                        flaglist.append(dict2[i])
+            except:
+                if message.text.lower() in i.lower():
+                    flaglist.append(dict2[i])
         if flaglist == []:
             await message.answer('Ничего не найдено, повторите попытку', reply_markup=menu7)
         elif len(flaglist) > 99:
@@ -358,7 +367,7 @@ async def check_org_processing(message: types.Message, state: FSMContext):
             rubbish_list = []
             for i in flaglist:
                 if data_dict[i][0] not in rubbish_list:
-                    keyb.add(types.InlineKeyboardButton(text=data_dict[i][0], callback_data=f'sold-{flaglist.index(i)}'))
+                    keyb.add(types.InlineKeyboardButton(text=data_dict[i][0], callback_data=f'sold-{list(data_dict.keys()).index(i)}'))
                     rubbish_list.append(data_dict[i][0])
                 else:
                     pass
@@ -371,18 +380,20 @@ async def check_org_processing(message: types.Message, state: FSMContext):
         await message.answer(text='Маленькая длина, попробуй ещё раз.')
         return
 
-@dp.callback_query_handler(Text(startswith='sold'), state=processing_class.result.state)
+
+@dp.callback_query_handler(state=processing_class.result.state)
 async def process_buttons(call: types.CallbackQuery, state: FSMContext):
     await call.answer()
     ind = int(call.data.split('-')[1])
-    data = (await state.get_data())
-    data_list = list(map(str,data['dict2'][data['flags'][ind]]))
+    with open('result.json', 'rt', encoding='utf-8') as file:
+        data_dict = json.loads(file.read())
+    data_list = data_dict[list(data_dict.keys())[ind]]
     totalstr = ''
     keyb2 = types.InlineKeyboardMarkup()
     keyb2.add(types.InlineKeyboardButton(text='🔍 Поиск заново', callback_data='name_menu2'),(types.InlineKeyboardButton(text='↩️Возврат в меню выбора', callback_data='selection_menu')))
     for i, elem in enumerate(data_list):
         if elem != '' and elem != 'None':
-            totalstr += f'{data["dict2"]["Название"][i]}: <b>{elem}</b>\n'
+            totalstr += f'{data_dict["Название"][i]}: <b>{elem}</b>\n'
     await bot.send_message(chat_id=call.from_user.id, text=totalstr, parse_mode='HTML', reply_markup=keyb2)
 
 
