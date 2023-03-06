@@ -95,7 +95,7 @@ async def selection_menu_processing(call: types.CallbackQuery, state: FSMContext
                            parse_mode='HTML',
                            reply_markup=menu8)
     await bot.send_message(chat_id=call.from_user.id,
-                           text='📄 Страхование, полисы ОСАГО::',
+                           text='📄 Страхование, полисы ОСАГО:',
                            reply_markup=menu11)
     await state.finish()
 @dp.message_handler(text='↩️Возврат в меню выбора', state='*')
@@ -192,7 +192,7 @@ async def start_commands(message: types.Message, state: FSMContext):
                            parse_mode='HTML',
                            reply_markup=menu8)
     await bot.send_message(chat_id=message.from_user.id,
-                           text='📄 Страхование, полисы ОСАГО::',
+                           text='📄 Страхование, полисы ОСАГО:',
                            reply_markup=menu11)
 
 
@@ -298,7 +298,7 @@ async def lending_loans_processing(call: types.CallbackQuery, state: FSMContext)
                            parse_mode=types.ParseMode.HTML)
     await bot.send_message(chat_id=call.from_user.id,
                            text='❗️Чтобы узнать находится ли компания в реестрах Банка России (имеет ли лицензию), <b>выберите 🔎Справочник финансовых организаций.</b>'
-                                ' Также проверьте наличие сведений о компании в 🆘 <b>Списке компаний с выявленными признаками нелегальной деятельности/b>".'
+                                ' Также проверьте наличие сведений о компании в 🆘 <b>Списке компаний с выявленными признаками нелегальной деятельности</b>".'
                                 ' Для этого выберите в меню "<b>Warning list Банка России</b>".',
                            parse_mode=types.ParseMode.HTML,
                            reply_markup=menu9)
