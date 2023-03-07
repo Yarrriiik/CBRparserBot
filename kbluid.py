@@ -2,7 +2,7 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardBut
 
 osmenu = ReplyKeyboardMarkup(keyboard=[
     [KeyboardButton(text='🔎Справочник финансовых организаций'), KeyboardButton(text='🆘Warning list Банка России')],
-    [KeyboardButton(text='📝Интернет-приёмная'), KeyboardButton(text='☎️Контактная информация'), KeyboardButton(text='↩️Возврат в меню выбора')]
+    [KeyboardButton(text='📝Интернет-приёмная'), KeyboardButton(text='☎️Контактная информация'), KeyboardButton(text='💡 Полезная информация')]
 ])
 menu1 = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='✅ Выбрать', callback_data='quick_earnings')]
@@ -14,7 +14,7 @@ menu8 = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='✅ Выбрать', callback_data='broker')]
 ])
 menu3 = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='↩️Возврат в меню выбора', callback_data='selection_menu')]
+    [InlineKeyboardButton(text='💡 Полезная информация', callback_data='selection_menu')]
 ])
 menu11 = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='✅ Выбрать', callback_data='osago')]
@@ -37,7 +37,7 @@ menu7 = InlineKeyboardMarkup(inline_keyboard=[
 menu9 = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='🔎Справочник финансовых организаций', url='https://www.cbr.ru/fmp_check/')],
     [InlineKeyboardButton(text='🆘Warning list Банка России', callback_data='neleg_deyat')],
-    [InlineKeyboardButton(text='↩️Возврат в меню выбора', callback_data='selection_menu')]
+    [InlineKeyboardButton(text='💡 Полезная информация', callback_data='selection_menu')]
 ])
 tran1 = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='📝Интернет-приёмная', url='https://www.cbr.ru/reception/')]
@@ -46,7 +46,7 @@ tran2 = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='☎️Контактная информация', url='https://www.cbr.ru/contacts/')]
 ])
 tran3 = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='↩️Возврат в меню выбора', callback_data='selection_menu')]
+    [InlineKeyboardButton(text='▶️ Перейти', callback_data='selection_menu')]
 ])
 tran4 = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Warning list Банка России', callback_data='neleg_deyat')]
