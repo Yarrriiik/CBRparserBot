@@ -376,7 +376,7 @@ async def process_buttons(call: types.CallbackQuery, state: FSMContext):
     keyb2 = types.InlineKeyboardMarkup()
     keyb2.add(types.InlineKeyboardButton(text='🔍 Поиск заново', callback_data='name_menu2'),(types.InlineKeyboardButton(text='↩️Возврат в меню выбора', callback_data='selection_menu')))
     for i, elem in enumerate(data_list):
-        if elem != '' and elem != 'None':
+        if elem != '' and elem != 'None' and elem is not None:
             totalstr += f'{data_dict["Название"][i]}: <b>{elem}</b>\n'
     await bot.send_message(chat_id=call.from_user.id, text=totalstr, parse_mode='HTML', reply_markup=keyb2)
 
